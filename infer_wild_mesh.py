@@ -78,7 +78,7 @@ if torch.cuda.is_available():
 chk_filename = opts.evaluate if opts.evaluate else opts.resume
 print('Loading checkpoint', chk_filename)
 checkpoint = torch.load(chk_filename, map_location=lambda storage, loc: storage)
-model.load_state_dict(checkpoint['model'], strict=True)
+model.load_state_dict(checkpoint['model'], strict=False)
 model.eval()
 
 testloader_params = {
