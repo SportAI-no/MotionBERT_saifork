@@ -21,6 +21,7 @@ from anno.formats import H36MFormat
 
 app = typer.Typer()
 
+
 def coco2h36m(x: np.ndarray, conf: np.ndarray):
     """
     Input: x (M x T x V x C)
@@ -239,7 +240,9 @@ def run_entry(
             json.dump(v, f)
 
         result_numpy = run_2d_to_3d(str(json_output_path))
-        for frame in motionbert_to_anno(result_numpy):
+        for frame in motionbert_to_anno(result_numpy, tracking_id=int(k)):
+            if frame.frame_nr >= len(entry):
+                continue
             for i in frame:
                 entry[frame.frame_nr].add_instance(i)
         os.remove(str(json_output_path))
