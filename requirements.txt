@@ -10,3 +10,7 @@ roma
 ipdb
 pytorch-metric-learning                         # For one-shot action recognition
 smplx[all]                                      # For mesh recovery
+typer
+tqdm 
+PyYAML
+pandas
