@@ -227,12 +227,17 @@ def run_entry(
     temp_root: Path = Path('~/tmp/')
 ):
 
-    entry = VideoEntry.from_file(entry_path)
-    h36m = get_h36m_json(entry)
+    entry_2d = VideoEntry.from_file(entry_path)
+    h36m = get_h36m_json(entry_2d)
 
-    entry = VideoEntry(entry.get_source_path(), annotation_format=H36MFormat)
-    for i, _ in enumerate(entry.get_source()):
-        entry.add_frame(AnnotationFrame(i))
+    # Copy entry with 2d-pose to new entry, keeping frame info with timestamps
+    entry = entry_2d.copy(copy_frames=True, copy_instances=False)
+    entry._annotation_format = H36MFormat
+    
+    # Old code to create new entry:
+    # entry = VideoEntry(entry.get_source_path(), annotation_format=H36MFormat)
+    # for i, _ in enumerate(entry.get_source()):
+    #     entry.add_frame(AnnotationFrame(i))
 
     for k, v in h36m.items():
         json_output_path = Path(temp_root) / f"{entry_path.stem}_{k}_h36m.json"
