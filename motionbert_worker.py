@@ -1,3 +1,4 @@
+import os
 import json
 from typing import Tuple
 
@@ -119,20 +120,16 @@ def get_h36m_json(entry: VideoEntry):
     return tracked_keypoints
 
 
-def run_2d_to_3d(json_path: str, size: Tuple[int, int] = None):
-    config_path = "configs/pose3d/MB_ft_h36m_global_lite.yaml"
-    evaluate_bin_path = (
-        "checkpoint/pose3d/FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin"
-    )
-
+def run_2d_to_3d(config_path: str, weights_path: str,
+                 json_path: str, size: Tuple[int, int] = None):
     focus = None
     clip_len = 243
 
     args = get_config(config_path)
     model_backbone = load_backbone(args)
-    checkpoint = torch.load(
-        evaluate_bin_path, map_location=lambda storage, loc: storage
-    )
+    checkpoint = torch.load(weights_path, 
+                            map_location=lambda storage, loc: storage, 
+                            weights_only=False)
 
     for key in list(checkpoint["model_pos"].keys()):
         checkpoint["model_pos"][key.replace("module.", "")] = checkpoint[
@@ -156,6 +153,9 @@ def run_2d_to_3d(json_path: str, size: Tuple[int, int] = None):
         "persistent_workers": True,
         "drop_last": False,
     }
+
+    if json_path is None: # just warmup
+        return None
 
     if size is not None:
         # Keep relative scale with pixel coornidates
@@ -222,11 +222,16 @@ def motionbert_to_anno(kps: np.ndarray, tracking_id: int) -> VideoEntry:
 
 @app.command()
 def run_entry(
-    entry_path: Path, 
-    output_path: Path, 
+    config_path: str,
+    weights_path: str,
+    entry_path: Path = None, 
+    output_path: Path = None, 
     temp_root: Path = Path('~/tmp/')
 ):
-
+    if entry_path is None:  #  just warmup for test
+        run_2d_to_3d(config_path, weights_path, None)
+        return
+    
     entry_2d = VideoEntry.from_file(entry_path)
     h36m = get_h36m_json(entry_2d)
 
@@ -244,7 +249,7 @@ def run_entry(
         with json_output_path.open("w") as f:
             json.dump(v, f)
 
-        result_numpy = run_2d_to_3d(str(json_output_path))
+        result_numpy = run_2d_to_3d(config_path, weights_path, str(json_output_path))
         for frame in motionbert_to_anno(result_numpy, tracking_id=int(k)):
             if frame.frame_nr >= len(entry):
                 continue
