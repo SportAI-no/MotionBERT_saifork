@@ -138,9 +138,9 @@ def run_2d_to_3d(config_path: str, weights_path: str,
 
     model_backbone.load_state_dict(checkpoint["model_pos"], strict=True)
 
-    # if torch.cuda.is_available():
-    #     model_backbone = nn.DataParallel(model_backbone)
-    #     model_backbone = model_backbone.cuda()
+    if torch.cuda.is_available():
+        model_backbone = nn.DataParallel(model_backbone)
+        model_backbone = model_backbone.cuda()
 
     model_pos = model_backbone
     model_pos.eval()
