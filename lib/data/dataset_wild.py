@@ -64,9 +64,14 @@ def halpe2h36m(x):
     y[:,16,:] = x[:,10,:]
     return y
     
-def read_input(json_path, vid_size, scale_range, focus):
-    with open(json_path, "r") as read_file:
-        results = json.load(read_file)
+def read_input(json_obj, vid_size, scale_range, focus):
+    if isinstance(json_obj, str):  #  if path to json file provided
+        json_path = json_obj
+        with open(json_path, "r") as read_file:
+            results = json.load(read_file)
+    else:
+        results = json_obj  #  if json dict provided
+
     kpts_all = []
     for item in results:
         if focus!=None and item['idx']!=focus:
